@@ -1,0 +1,7 @@
+groq
+python-dotenv
+crewai
+litellm
+azure-ai-projects
+azure-identity
+openai
