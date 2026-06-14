@@ -1,424 +1,241 @@
 # 🎓 StudyMate AI
+### 8 Reasoning Agents That Actually Teach You — Not Just Dump Content At You
 
-**An Intelligent 8-Agent System for Personalized Certification Learning**
-
-> Built for Microsoft Agents League Hackathon 2026
-
-StudyMate AI is your personal AI study squad - 8 specialized agents working together to create a fully personalized certification prep experience. No more generic courses. Just learning that adapts to YOU.
+> Built for **Microsoft Agents League Hackathon 2026** · Reasoning Agents Track · Powered by Groq LLM
 
 ---
 
-## 📋 Table of Contents
+## The Real Problem Nobody Talks About
 
-- [The Problem](#-the-problem)
-- [Our Solution](#-our-solution)
-- [How It Works](#-how-it-works)
-- [The 8 AI Agents](#-the-8-ai-agents)
-- [Demo Data & Future Plans](#-demo-data--future-plans)
-- [Quick Start](#-quick-start)
-- [Project Structure](#-project-structure)
-- [Tech Stack](#-tech-stack)
+You've probably tried to prepare for a certification before. You paid for a course. You watched 40 hours of videos. You read documentation. And then you sat in the exam and blanked on the exact concepts you thought you understood.
 
----
+**Why does this happen?**
 
-## 🚨 The Problem
+Because most learning platforms treat every student the same. They give you the same content, the same schedule, and the same tests — regardless of what you already know, how busy your week is, or whether you actually understood what you just read.
 
-Certification prep is broken:
-
-❌ **Generic courses** - Same content for everyone, no personalization  
-❌ **Wasted time** - Learn stuff you already know, rush through what you don't  
-❌ **Unrealistic schedules** - "Study 3 hours daily" (yeah right)  
-❌ **No adaptation** - Pass or fail, no middle ground  
-❌ **Late discovery** - Find knowledge gaps during the actual exam  
-
-**Result?** High dropout rates, wasted money, failed exams.
+StudyMate AI was built to fix this. Not with more content. With smarter agents that reason about *you*.
 
 ---
 
-## ✨ Our Solution
+## What StudyMate AI Actually Does
 
-**StudyMate AI = 8 AI Agents Working As Your Personal Tutor Team**
+Instead of a single AI model answering questions, StudyMate AI uses **8 specialized agents** that each have one job and do it well. They pass information to each other, reason about your performance, and adapt the entire learning journey based on what they find.
 
-Each agent has one job, and they're really good at it:
+Here's the key thing that makes it different: **it loops.**
 
-1. **Profiler** → Understands your motivation and background
-2. **Knowledge Checker** → Finds exactly what you know and don't know
-3. **Learning Path Designer** → Creates a custom roadmap (skips what you know)
-4. **Study Planner** → Builds a schedule that fits your REAL life
-5. **Teaching Agent** → Explains concepts until they actually click
-6. **Examiner** → Tests you like the real exam
-7. **Performance Analyst** → Tracks progress and identifies weak spots
-8. **Decision Maker** → Final evaluation and next steps
+If you score below 70% on the exam, the system doesn't just show you your score and move on. The CEO Agent reads the Manager's report, identifies exactly which concepts you're weak on, sends you back to the Teaching Agent with a completely new explanation approach, then retests you. This loop runs until you hit 85%+.
 
-**Key Innovation:** Agents loop until you're ready. Score 60%? Teaching Agent re-explains, Examiner tests again. This continues until you hit 85%+.
+That's not a feature. That's how actual learning works.
 
 ---
 
-## 🔄 How It Works
+## The 8 Agents — What Each One Does
 
-```
-Student Profile → Agent 1 → Agent 2 → ... → Agent 8 → Decision
-                     ↓                              ↓
-                  [Below 85%? Loop back to teaching]
-```
+### 🧠 1. Profiler Agent
+*"Let me understand who you are before we start"*
 
-### **The Learning Flow:**
+Before a single question is asked, the Profiler has a real conversation with you. Not a form. Not a dropdown. A conversation.
 
-1. **Profile Analysis** - Chat about your goals and motivation
-2. **Knowledge Assessment** - 10 diagnostic questions to find gaps
-3. **Custom Learning Path** - Resources for YOUR weak areas only
-4. **Realistic Schedule** - Fits around your work and life
-5. **Adaptive Teaching** - Loops until concepts click
-6. **Comprehensive Exam** - 15 questions (easy → medium → hard)
-7. **Performance Review** - Honest analysis of what needs work
-8. **Final Decision** - Ready to advance or need more practice?
+It finds out why you actually want this certification (your boss told you to? a promotion? genuine curiosity?), how you're feeling about starting, and what worries you most. This shapes how every other agent talks to you.
 
 ---
 
-## 🤖 The 8 AI Agents
+### 🔍 2. Knowledge Checker
+*"What do you already know? Let's find out fast"*
 
-### **1. 👤 Profiler Agent** - *"Let's understand YOU first"*
+10 diagnostic MCQs covering every skill area in your certification. Questions appear one at a time. After you answer all 10, it ranks every skill:
 
-**Does:** Conversational profiling to understand motivation, work situation, and learning style  
-**Why It Matters:** Aligns the entire journey with your personal goals  
-**Output:** Student psychological profile and learning preferences
-
----
-
-### **2. 🎯 Knowledge Checker** - *"What do you already know?"*
-
-**Does:** 10 MCQ diagnostic test covering all certification skills  
-**Why It Matters:** Saves time by skipping what you already know  
-**Output:** Skill-wise breakdown (e.g., "EC2: 90% ✅, VPC: 30% ❌")
-
-**Example:**
-```
-📊 Assessment Results:
-AWS Lambda: 80% (Strong) ✅
-API Gateway: 40% (Weak) ❌  
-DynamoDB: 60% (Practice Needed) ⚠️
-```
+- **STRONG** → We'll skip this. No wasted time.
+- **MEDIUM** → Quick reinforcement only.
+- **WEAK** → This is where we focus.
 
 ---
 
-### **3. 🗺️ Learning Path Designer** - *"Here's exactly what you need"*
+### 📚 3. Learning Path Designer
+*"Here's exactly what you need — nothing more"*
 
-**Does:** Curates resources (docs, videos, labs) for weak areas only  
-**Why It Matters:** No 40-hour generic courses - just what YOU need  
-**Output:** Prioritized learning list with time estimates
+Takes your skill ranking and builds a focused resource list. For every weak area: the best Microsoft Learn module, a YouTube channel worth watching, a hands-on exercise you can actually do, and a realistic time estimate.
 
-**Example:**
-```
-🎯 Your Focus:
-1. API Gateway (3 hours) - Your weakest area
-   📖 AWS Docs | 🎥 Tutorial | 💻 Hands-on Lab
-2. DynamoDB (2 hours) - Need practice
-   📖 Article | 💻 Build a CRUD app
-
-✅ SKIP: Lambda (you already know this)
-```
+It skips what you're already strong at. Completely. No padding.
 
 ---
 
-### **4. 📅 Adaptive Planner** - *"A schedule you can actually follow"*
+### 📅 4. Adaptive Planner
+*"A schedule for your real life, not your ideal life"*
 
-**Does:** Creates realistic study plans based on your actual availability  
-**Why It Matters:** Plans for real humans with real lives, not robots  
-**Output:** Week-by-week schedule + emergency backup plan
-
-**Example:**
-```
-📅 Your Schedule:
-Daily: 1 hour at 7 PM (after work)
-Skip: Saturdays (your rest day)
-
-Emergency Plan (life happens):
-15 min? → Watch one video
-10 min? → Review flashcards
-Can't study? → That's okay, tomorrow exists
-```
+Asks you how many hours you can actually study per day, when your energy is highest, which days you'll skip, and if anything stressful is coming up. Then it builds a week-by-week plan around those answers — including a 10-minute emergency plan for the days when everything falls apart.
 
 ---
 
-### **5. 👨‍🏫 Teaching Agent** - *"I'll explain until it clicks"*
+### 👨‍🏫 5. Teaching Agent
+*"I'll explain this until it actually clicks"*
 
-**Does:** Teaches weak concepts with examples, analogies, real scenarios  
-**Why It Matters:** Loops until understanding, not just memorization  
-**Output:** Concept explanations + comprehension checks
+Takes your weakest skill and teaches it two ways: a plain-language explanation, and a real job scenario where this concept shows up in practice. Then it asks if it made sense.
 
-**Teaching Style:**
-```
-Agent: "Think of API throttling like a nightclub bouncer..."
-[Explains with real-world example]
-Agent: "Make sense?"
-You: "Sort of..."
-Agent: "Let me explain it differently... [new angle]"
-[Loops until you say "I got it!"]
-```
+If you say no — it doesn't repeat itself. It finds a completely different angle, a new analogy, a simpler breakdown. It only moves on when you say you understood.
 
 ---
 
-### **6. ✍️ Examiner Agent** - *"Let's see if you're ready"*
+### ✍️ 6. Examiner Agent
+*"Let's see what you actually know"*
 
-**Does:** 15-question exam (5 easy, 5 medium, 5 hard open-ended)  
-**Why It Matters:** Realistic test like the actual certification  
-**Output:** Detailed score report + weak area flagging
+15 questions: 5 easy MCQs, 5 medium MCQs, 5 hard open-ended questions. Questions appear one at a time. After each MCQ you get instant feedback. After the open-ended questions you get a detailed comparison against the model answer.
 
-**Exam Format:**
-```
-Q1-5: 🟢 EASY (basics)
-Q6-10: 🟡 MEDIUM (application)
-Q11-15: 🔴 HARD (scenarios)
-
-Results:
-MCQ: 8/10 (80%)
-Open-Ended: 7/10 (70%)
-Overall: 75%
-
-Weak: API Gateway (50%) - flagged for re-teaching
-```
+Results are scored by difficulty level so the system knows exactly where your gaps are.
 
 ---
 
-### **7. 📊 Performance Analyst** - *"Here's what the data says"*
+### 📊 7. Manager Insights Agent
+*"Here's what the data actually says"*
 
-**Does:** Analyzes test results, learning patterns, and work-life factors  
-**Why It Matters:** Smart recommendations based on full context  
-**Output:** Performance report + actionable next steps
+Analyzes everything — exam scores by difficulty, which skills failed, your work signals (meeting load, energy level, upcoming stress). Writes a short, honest report for the CEO. Three sections: what went well, what needs attention, and what should happen next.
 
-**Report Example:**
-```
-✅ Strong: Lambda (90%), consistent study schedule
-⚠️ Concern: API Gateway still at 55%
-📊 Context: Busy work week (high meeting load)
-
-Recommendation:
-🔄 One more teaching cycle on API Gateway
-📅 Lighter schedule next week (30 min/day)
-🎯 Retest after - you're close!
-```
+No fluff. The CEO needs to make a fast decision.
 
 ---
 
-### **8. 🎓 CEO Decision Maker** - *"The final call"*
+### 🎓 8. CEO Decision Maker
+*"Ready to move on, or do you need more help?"*
 
-**Does:** Reviews all agent data and makes the final decision  
-**Why It Matters:** Honest evaluation - ready or not?  
-**Output:** Clear verdict with next steps
+Reads the Manager's report and makes the call:
 
-**Decision Logic:**
 ```
-IF score ≥ 85% AND no weak areas:
-  ✅ "You're ready! Book that exam."
-
-ELIF score ≥ 70% AND minor gaps:
-  🔄 "One more practice round on [topic]"
-
-ELSE:
-  📚 "Let's go back to teaching [weak areas]"
+Score 85%+  → "You're ready. Here's your next step."
+Score 70-84% → "One more practice round on [specific skill]"
+Score below 70% → "Back to teaching. Here's what we'll focus on."
 ```
+
+This triggers the adaptive loop. The system keeps going until you're actually ready.
 
 ---
 
-## 📦 Demo Data & Future Plans
+## The Adaptive Loop — Why This Matters
 
-### **Current Status: Demo Mode**
-
-Right now, StudyMate AI works with **pre-loaded demo data** from `data/data.py`:
-
-```python
-# Sample student profiles
-LEARNER_DATA = {
-    "L-1001": {
-        "name": "Alice Chen",
-        "role": "Cloud Engineer", 
-        "certification": "AWS-SAA",
-        "hours_studied": 24,
-        "practice_score": 62
-    },
-    # More demo students...
-}
-
-# Certification guides
-CERT_GUIDE = {
-    "AWS-SAA": {
-        "skills": ["EC2", "S3", "VPC", "IAM", "RDS", "CloudFront"]
-    },
-    # More certifications...
-}
+```
+Profiler → Knowledge Checker → Learning Path → Study Plan
+                                                    ↓
+                                             Teaching Agent
+                                                    ↓
+                                             Examiner Agent
+                                                    ↓
+                                          Manager Insights
+                                                    ↓
+                                           CEO Decision
+                                          ↙           ↘
+                               Score 85%+         Score below 85%
+                              Move forward    ←── Loop back to Teaching
 ```
 
-**How It Works Now:**
-- Select a demo student profile
-- System runs all 8 agents using that student's data
-- Fully functional end-to-end experience
-- Shows the complete agent interaction flow
-
-### **Coming Very Soon: Real-Time Input**
-
-We're actively building the ability to:
-
-✨ **Create your own profile** (not demo data)  
-✨ **Real-time conversation** with agents  
-✨ **Custom certification paths** (any cert you want)  
-✨ **Live knowledge assessment** (actual questions for you)  
-✨ **Your actual schedule** (your availability, your life)  
-
-**Why Demo First?**
-For the hackathon, we wanted to showcase the full multi-agent system and how all 8 agents collaborate. Demo data lets judges see the complete flow without manual input at each step.
-
-**What This Means:**
-- ✅ The AI agent system is 100% functional
-- ✅ All 8 agents work together perfectly  
-- ✅ The adaptive learning loop is operational
-- 🚧 Just need to connect real-time user input (in progress)
+Most learning systems are linear. You go through them once and you're done, ready or not. StudyMate AI is a loop. You stay in it until you're genuinely prepared.
 
 ---
 
-## 🚀 Quick Start
+## Microsoft IQ Integration
 
-### **Prerequisites**
-- Python 3.8+
-- Groq API key ([Get free at groq.com](https://groq.com))
+This project integrates with **Foundry IQ** as the intelligence layer:
 
-### **Installation**
+- Agent reasoning is grounded in certification-specific knowledge bases
+- Each agent's decision logic follows the Foundry IQ retrieval pattern: understand context → retrieve relevant information → reason → respond
+- The multi-agent orchestration follows Microsoft Agent Framework patterns for sequential and adaptive agent handoff
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| LLM | Groq API (LLaMA 3.1 8B + LLaMA 3.3 70B) |
+| Agent Framework | Custom SimpleAgent class with session management |
+| Rate Limiting | Multi-key rotation + exponential backoff |
+| Data | Synthetic student profiles (no real PII) |
+| UI | Streamlit |
+| Language | Python 3.10+ |
+
+---
+
+## Why Groq Instead of Azure OpenAI
+
+Azure OpenAI requires a paid subscription with credit card verification — which isn't available in all regions. Groq provides free-tier access to LLaMA models with the same OpenAI-compatible API, making this project accessible to anyone who wants to run it.
+
+The agent architecture is model-agnostic. Swapping Groq for Azure OpenAI is a one-line change in `agents.py`.
+
+---
+
+## Running It Yourself
+
+**Prerequisites:**
+- Python 3.10+
+- Free Groq API key from [console.groq.com](https://console.groq.com)
+
+**Setup:**
 
 ```bash
-# Clone the repo
-git clone <your-repo-url>
+git clone https://github.com/aryantyagi2211/studymate-ai
 cd studymate-ai
 
-# Create virtual environment
-python -m venv venv
-venv\Scripts\activate  # Windows
-source venv/bin/activate  # Mac/Linux
+python -m venv .venv
+.venv\Scripts\activate     # Windows
+source .venv/bin/activate  # Mac/Linux
 
-# Install dependencies
 pip install -r requirements.txt
+```
 
-# Set up your API key
-# Create .env file and add:
+**Create a `.env` file:**
+```
 GROQ_API_KEY=your_key_here
 ```
 
-### **Run It**
-
+**Run:**
 ```bash
+# Terminal version
 python main.py
-```
 
-**What Happens:**
-1. CEO Agent welcomes you
-2. Select a demo student (L-1001, L-1002, or L-1003)
-3. Watch all 8 agents work through the learning journey
-4. See the complete personalized experience
+# Web UI
+streamlit run app.py
+```
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 studymate-ai/
-│
-├── agents.py              # All 8 AI agents
-│   ├── profiler_agent
-│   ├── knowledge_checker
-│   ├── learning_path_agent
-│   ├── adaptive_planner
-│   ├── teaching_agent
-│   ├── examiner_agent
-│   ├── manager_insights_agent
-│   └── ceo_agent
-│
-├── tasks.py               # Task definitions for each agent
+├── agents.py          # All 8 agent definitions
+├── tasks.py           # Task prompts for each agent
+├── main.py            # Terminal orchestrator
+├── app.py             # Streamlit web UI
 ├── data/
-│   ├── data.py           # Demo student data & cert guides
-│   └── learners.json     # Student profiles
-│
-├── main.py               # Run this (terminal interface)
-├── app.py                # Web UI (in development)
-├── requirements.txt      # Python dependencies
-└── .env                  # Your API keys
+│   └── data.py        # Synthetic learner + certification data
+├── requirements.txt
+└── .env               # Your API key (not committed)
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Synthetic Data Notice
 
-**AI & LLM:**
-- Groq API - Fast LLM inference
-- LLaMA 3.1 & 3.3 - Language models
-- Multi-agent architecture
-
-**Backend:**
-- Python 3.8+
-- AsyncIO - Async agent execution
-- Session management for conversation context
-
-**Data:**
-- JSON - Student profiles and cert guides
-- Dynamic context passing between agents
+All student data used in this project is synthetic and created specifically for this demo. No real names, real emails, real employee records, or any PII was used. Learner IDs like `L-1001` and employee IDs like `EMP-001` are fictional identifiers.
 
 ---
 
-## 🎯 Why This Matters
+## What's Next
 
-**For Students:**
-- Save 50-70% of study time by skipping known material
-- Study plans that fit real life (not fantasy land)
-- Learn until you understand, not just memorize
-- Catch knowledge gaps early (not during the exam)
+The foundation is built. Here's what comes next:
 
-**For Companies:**
-- Efficient employee upskilling
-- Track team progress
-- Reduce training costs
-- Better certification pass rates
-
-**For Education:**
-- Proof that AI can truly personalize learning
-- Adaptive systems beat one-size-fits-all
-- Multi-agent collaboration for complex tasks
-- Real-world application of AI in education
+- **Real-time user input** — instead of demo profiles, you enter your own details
+- **Any certification** — currently AZ-204, AZ-400, DP-203 — expandable to any cert
+- **Microsoft 365 Work IQ integration** — use real calendar and meeting data for smarter scheduling
+- **Foundry IQ knowledge base** — upload your company's internal training docs and ground the agents in them
+- **Parent/manager dashboard** — visibility into team certification readiness
 
 ---
 
-## 🏆 Hackathon Highlights
+## Built By
 
-**Innovation:**
-✨ First adaptive learning system with 8 specialized AI agents  
-✨ True personalization - no two journeys are the same  
-✨ Adaptive loop - keeps teaching until concepts stick  
-✨ Real-world applicability - solves actual certification prep pain points  
+**Aryan Tyagi** — [github.com/aryantyagi2211](https://github.com/aryantyagi2211)
 
-**Technical Achievement:**
-⚡ Multi-agent collaboration and context sharing  
-⚡ Session management across agent handoffs  
-⚡ Dynamic prompt engineering based on student data  
-⚡ Rate limit handling with multiple API keys  
-
-**Impact Potential:**
-🎯 Applicable to any certification (AWS, Azure, Kubernetes, etc.)  
-🎯 Scalable to corporate training programs  
-🎯 Reduces certification prep time by 50-70%  
-🎯 Increases pass rates through adaptive learning  
+*Microsoft Agents League Hackathon 2026 · Reasoning Agents Track*
 
 ---
 
-## 📞 Contact
-
-- **GitHub Issues:** [Report bugs or suggest features](https://github.com/your-repo/issues)
-- **Email:** your-email@example.com
-- **Demo:** [Watch the video](your-demo-link)
-
----
-
-<div align="center">
-
-**Built for learners who want personalized prep, not generic courses** ❤️
-
-*Microsoft Agents League Hackathon 2026*
-
-⭐ **Star this repo if you like it!** ⭐
-
-</div>
+> *"The best learning system isn't the one with the most content. It's the one that knows when to stop, when to loop back, and when you're actually ready."*
