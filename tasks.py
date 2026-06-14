@@ -1,183 +1,241 @@
 from data.data import LEARNER_DATA, WORK_SIGNALS, CERT_GUIDE, TEAM
 
-LEARNER = LEARNER_DATA["L-1001"]
-WORK = WORK_SIGNALS["EMP-001"]
+# Which student and employee record this session is for.
+LEARNER_ID = "L-1001"
+EMPLOYEE_ID = "EMP-001"
+
+LEARNER = LEARNER_DATA[LEARNER_ID]
+WORK = WORK_SIGNALS[EMPLOYEE_ID]
 CERT = CERT_GUIDE[LEARNER["certification"]]
+
+# Pull just this student's row from TEAM, instead of handing the whole
+# team's data to an agent that's only meant to report on one person.
+STUDENT_RECORD = next(member for member in TEAM if member["id"] == LEARNER_ID)
+
 
 task_ceo = {
     "description": f"""
-    A new student has just entered StudyMate AI.
-
-    Student details:
+    Welcome {LEARNER['name']} to StudyMate AI.
+    
+    Student info:
     - Role: {LEARNER['role']}
-    - Certification goal: {LEARNER['certification']}
-    - Hours studied so far: {LEARNER['hours_studied']}
-    - Practice score: {LEARNER['practice_score']}%
-
-    Your job:
-    Welcome the student warmly.
-    Tell them exactly what is going to happen step by step.
-    Make them feel confident that this system will guide them properly.
-    Decide the first agent to activate — which is the Profiler Agent.
+    - Goal: {LEARNER['certification']}
+    - Progress: {LEARNER['hours_studied']} hours, {LEARNER['practice_score']}% score
+    
+    Give a warm, SHORT welcome (2-3 sentences) explaining the journey:
+    profile → assess → learn → test → improve
     """,
-    "expected_output": "A warm welcome message and clear overview of what StudyMate AI will do for this student."
+    "expected_output": "Short welcome message (under 100 words) explaining the StudyMate AI process"
 }
+
 
 task_profiler = {
     "description": f"""
-    A student wants to earn the {LEARNER['certification']} certification.
+    {LEARNER['name']} just signed up to prepare for {LEARNER['certification']}.
     They work as a {LEARNER['role']}.
 
-    Your job:
-    Understand why this student wants this certification.
-    Present 3 possible motivation types:
-    1. Company requires it
-    2. Career growth or promotion
-    3. Personal interest and curiosity
+    Before anything else, get to know them as a person — not just a
+    certification goal. In your own words, naturally:
+    - Ask why they actually want this certification (career growth, a
+      manager's push, genuine interest — anything is a fair answer)
+    - Ask how they're feeling about starting (excited, nervous, overwhelmed,
+      or something else)
+    - Ask what worries them most about this certification
 
-    For each motivation type explain what learning style works best.
-    Then identify which motivation most likely fits this student and set their engagement direction.
-    Point them clearly in the right direction before learning begins.
+    Based on what someone in their role is likely feeling, make a warm guess
+    about their motivation and use it to set the tone for what comes next.
+
+    Keep it under 150 words, written like one real message from a person —
+    no headings, no bullet points.
     """,
-    "expected_output": "3 motivation types explained with engagement styles, and the most likely motivation identified for this student."
+    "expected_output": "A short, warm message (under 150 words) that asks about motivation, feelings, and worries in a natural, human way."
 }
+
 
 task_knowledge_checker = {
     "description": f"""
-    Check how much this student already knows before we build their learning plan.
+    Create a comprehensive knowledge assessment for {LEARNER['name']} to understand their current skill level.
 
-    Student details:
-    - Certification: {LEARNER['certification']}
-    - Skills required: {CERT['skills']}
-    - Self reported practice score: {LEARNER['practice_score']}%
+    Certification: {LEARNER['certification']}
+    Skills required: {CERT['skills']}
+    Self-reported practice score: {LEARNER['practice_score']}%
 
-    Your job:
-    Generate 5 questions — one per skill area.
-    Show the correct answer after each question.
-    Then rank every skill clearly as:
-    - STRONG — student knows this well, quick revision only
-    - MEDIUM — student knows basics but needs reinforcement  
-    - WEAK — student needs full focused learning here
+    Create 10 multiple-choice questions (MCQs) covering all required skills:
+    - 3-4 questions per major skill area
+    - Each question should have 4 options (A, B, C, D)
+    - One correct answer per question
+    - Questions should range from basic to intermediate difficulty
 
-    Be honest but never make the student feel bad.
-    Gaps are just the starting point.
+    CRITICAL: Return ONLY valid JSON in this EXACT format (no markdown, no code fences, no extra text):
+
+    {{
+      "questions": [
+        {{
+          "id": 1,
+          "skill": "API Development",
+          "question": "What is the primary purpose of API keys?",
+          "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
+          "correct_answer": "A",
+          "explanation": "Brief explanation of why this is correct"
+        }}
+      ]
+    }}
+
+    The system will present these questions one by one to the student.
     """,
-    "expected_output": "5 diagnostic questions with answers and a clear skill ranking: STRONG / MEDIUM / WEAK for each skill."
+    "expected_output": "JSON object with 10 MCQ questions, each with id, skill, question text, 4 options, correct answer (A/B/C/D), and explanation."
 }
+
 
 task_learning_path = {
     "description": f"""
-    Build a focused learning path for this student based on their skill ranking.
+    {LEARNER['name']} ({LEARNER['role']}) is working toward
+    {LEARNER['certification']} ({CERT['full_name']}).
 
-    Student details:
-    - Role: {LEARNER['role']}
-    - Certification: {LEARNER['certification']}
-    - Skills needed: {CERT['skills']}
-    - Hours already studied: {LEARNER['hours_studied']}
-    - Total hours recommended: {CERT['recommended_hours']}
+    Skills to focus on: {CERT['skills']}
+    Hours remaining before the exam: {CERT['recommended_hours'] - LEARNER['hours_studied']}
 
-    Your job:
-    Skip everything they are already strong at.
-    For WEAK skills — find the best free resource and give full focus.
-    For MEDIUM skills — give a quick reinforcement resource.
-    For STRONG skills — give a 15 minute revision tip only.
-    Align all resources properly according to their ranking.
-    End with an encouraging note.
+    For each skill that still needs work, point them to:
+    - The most relevant official Microsoft Learn module
+    - One great video or channel
+    - One well-written article or blog post
+    - A hands-on exercise, sandbox, or repo to practice with
+    - A community (subreddit, Discord, forum) where people discuss this topic
+    - A realistic time estimate for that skill alone
+
+    Skip any skill they're already strong in. Keep the whole thing under 250
+    words and casual in tone — like a senior dev texting a junior friend a
+    list of "here's what actually helped me."
     """,
-    "expected_output": "A focused learning path with resources aligned to each skill level — full resources for weak, quick tips for strong."
+    "expected_output": "A short, casual resource list (under 250 words) covering each weak skill with concrete resources and time estimates."
 }
+
 
 task_adaptive_plan = {
     "description": f"""
-    Build a realistic study schedule for this student around their real life.
+    Build a study schedule for {LEARNER['name']} that fits around their
+    actual life — not an idealized one.
 
-    Student details:
+    What we know about their routine:
     - Certification: {LEARNER['certification']}
     - Hours still needed: {CERT['recommended_hours'] - LEARNER['hours_studied']}
+    - Time available per day: {LEARNER['daily_hours_available']} hours
+    - Preferred study time: {LEARNER['preferred_slot']}
+    - Days they'd rather not study: {LEARNER['skip_days']}
+    - On their mind right now: {LEARNER['emergency']}
+
+    Work signals from their job:
     - Meeting hours per week: {WORK['meeting_hours']}
     - Focus hours per week: {WORK['focus_hours']}
-    - Preferred study slot: {WORK['preferred_slot']}
+    - Energy levels: {WORK['energy_level']}
+    - Best day for deep focus: {WORK['best_focus_day']}
 
-    Your job:
-    First ask about their daily routine, available hours, and any skip days or emergencies coming up.
-    Then build a week by week schedule that is honest and achievable.
-    Include:
-    - Daily study targets
-    - Which days can be skipped
-    - A 10 minute emergency plan for exhausted days
-    Never set them up to fail. Make progress feel possible.
+    Using all of this, build a realistic week-by-week schedule with:
+    - A daily study target that fits their available time
+    - Confirmation of which days are skip days, and why that's okay
+    - A 10-minute emergency plan for days when things go sideways
+
+    Make it feel achievable. If what's on their mind right now makes this
+    week harder than usual, acknowledge it and adjust the plan accordingly.
     """,
-    "expected_output": "A week-by-week study schedule with daily targets, skip day options, and a 10-minute emergency plan."
+    "expected_output": "A week-by-week study schedule built from the student's real routine and work signals, with daily targets, skip days, and a 10-minute emergency plan."
 }
+
 
 task_teaching = {
     "description": f"""
-    Teach the student the concepts they need to learn.
+    Teach {LEARNER['name']} the concept they need most right now.
 
-    Student details:
-    - Certification: {LEARNER['certification']}
-    - Weak skills to teach: {CERT['skills']}
-    - Current practice score: {LEARNER['practice_score']}%
+    Certification: {LEARNER['certification']}
+    Skills in scope: {CERT['skills']}
+    Current practice score: {LEARNER['practice_score']}%
 
-    Your job:
-    Take the weakest skill first.
-    Teach it in exactly 2 ways:
-    1. Clear simple explanation
-    2. Real world example from a real job scenario
+    Look at the skill ranking from the Knowledge Checker and start with
+    whichever skill came out weakest. Teach it in two ways — a simple, clear
+    explanation, and a real-world example from an actual job scenario.
 
-    After teaching ask: Did that make sense? Yes / No / Somewhat
-    If No or Somewhat — teach it again from a completely different angle.
-    Only move to the next concept when the student confirms they understood.
-    Never skip ahead.
+    Then ask if it made sense. If the answer is no or "somewhat," teach it
+    again from a different angle. Only move on to the next concept once it's
+    clear this one has landed.
     """,
-    "expected_output": "2-way teaching of the weakest concept with a comprehension check before moving forward."
+    "expected_output": "A two-way teaching of the weakest concept, with a comprehension check before moving on."
 }
+
 
 task_examiner = {
     "description": f"""
-    Test the student on what the Teaching Agent just taught them.
+    Create a comprehensive exam for {LEARNER['name']} based on what the Teaching Agent just covered.
 
-    Student details:
-    - Certification: {LEARNER['certification']}
-    - Skills taught: {CERT['skills']}
-    - Current practice score: {LEARNER['practice_score']}%
+    Certification: {LEARNER['certification']}
+    Skills in scope: {CERT['skills']}
+    Current practice score: {LEARNER['practice_score']}%
 
-    Your job:
-    Generate a mix of question types:
-    - 2 MCQ questions (4 options each, correct answer, one line explanation)
-    - 1 Q&A question (open answer, model answer provided)
+    Create exactly 15 questions with varying difficulty levels:
+    - 5 EASY questions (multiple choice)
+    - 5 MEDIUM questions (multiple choice)
+    - 5 HARD questions (open-ended Q&A style)
 
-    For each question clearly state which skill it tests.
-    After all questions show a score summary.
-    Flag any skill where performance is below 60 percent — these go back to the Teaching Agent.
-    Your full results go to the Manager Insights Agent.
+    For MCQ questions:
+    - Each has 4 options (A, B, C, D)
+    - One correct answer
+    - Brief explanation
+
+    For Q&A questions:
+    - Open-ended question requiring detailed answer
+    - Provide a model answer for comparison
+    - Specify key points that should be covered
+
+    CRITICAL: Return ONLY valid JSON in this EXACT format (no markdown, no code fences):
+
+    {{
+      "questions": [
+        {{
+          "id": 1,
+          "type": "mcq",
+          "difficulty": "easy",
+          "skill": "API Development",
+          "question": "Question text here?",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "correct_answer": "B",
+          "explanation": "Brief explanation"
+        }},
+        {{
+          "id": 11,
+          "type": "qa",
+          "difficulty": "hard",
+          "skill": "Azure Functions",
+          "question": "Explain question text here?",
+          "model_answer": "Detailed model answer",
+          "key_points": ["Point 1", "Point 2", "Point 3"]
+        }}
+      ]
+    }}
+
+    Label each question with the skill it tests. After scoring, flag any skill where the student scored below 60% for more teaching.
     """,
-    "expected_output": "2 MCQ + 1 Q&A question with answers, skill labels, score summary, and flags for weak areas."
+    "expected_output": "JSON with 15 questions (10 MCQ: 5 easy + 5 medium, 5 Q&A: hard), each labeled with difficulty and skill, with answers and explanations."
 }
+
 
 task_manager_insights = {
     "description": f"""
-    Collect all student performance data and prepare a report for the CEO.
+    Put together a report on {LEARNER['name']}'s session so the CEO can
+    decide what happens next.
 
-    Team data: {TEAM}
-    Work signals: {WORK_SIGNALS}
+    This student's record: {STUDENT_RECORD}
+    Their work signals: {WORK}
 
-    Your job:
-    Write a clear performance report with 3 sections:
+    Write three short sections:
 
-    Section 1 — Student Performance:
-    How is the student doing overall? Where did they struggle? What did they get right?
+    1. How did they do? — What went well, where did they struggle?
+    2. What needs attention? — Which skills are still weak? Do their work
+       signals (energy levels, meeting load, anything flagged as on their
+       mind) suggest they need a lighter plan or a break?
+    3. Recommendation — Should they go back to the Teaching Agent for more
+       explanation, to the Examiner for more practice, or are they ready to
+       move on?
 
-    Section 2 — What Needs Attention:
-    Which skills are still weak? Is the student tired or overwhelmed?
-    Check their condition — flag if they need a break or plan adjustment.
-
-    Section 3 — Recommendation to CEO:
-    Should this student go back to Teaching Agent for more learning?
-    Or go to Examiner Agent for more practice?
-    Or are they ready to move on to the next topic?
-
-    Write clearly so the CEO can make the right decision instantly.
+    Keep it short enough that the CEO can act on it immediately.
     """,
-    "expected_output": "A 3-section performance report with student status, attention areas, and a clear recommendation to the CEO."
+    "expected_output": "A 3-part report — performance summary, attention areas, and a clear recommendation — based only on this student's data."
 }

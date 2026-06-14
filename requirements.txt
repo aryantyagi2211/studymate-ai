@@ -1,7 +1,21 @@
-groq
-python-dotenv
-crewai
-litellm
-azure-ai-projects
-azure-identity
-openai
+# Core AI & LLM
+openai>=1.0.0
+groq>=0.4.0
+python-dotenv>=1.0.0
+
+# Microsoft Agent Framework (if used)
+azure-ai-projects>=1.0.0b1
+azure-identity>=1.12.0
+
+# Multi-agent frameworks
+crewai>=0.1.0
+litellm>=1.0.0
+
+# Optional: Web UI
+gradio>=4.0.0
+
+# Standard library (already included in Python)
+# asyncio - built-in
+# json - built-in
+# os - built-in
+# random - built-in
