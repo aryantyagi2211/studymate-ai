@@ -30,7 +30,7 @@ if os.getenv("GROQ_API_KEY"):
 if not API_KEYS:
     raise ValueError("No GROQ_API_KEY found in .env file!")
 
-print(f"🔑 Loaded {len(API_KEYS)} API key(s) for rotation")
+print(f"[API] Loaded {len(API_KEYS)} API key(s) for rotation")
 
 # Multiple models for load balancing and rate limit handling
 # Using stable models without tool-calling issues
@@ -110,10 +110,10 @@ class SimpleAgent:
             except RateLimitError as e:
                 if attempt < max_retries - 1:
                     wait_time = 10 * (attempt + 1)  # Exponential backoff
-                    print(f"\n⚠️  Rate limit hit. Trying different API key/model in {wait_time}s...")
+                    print(f"\n[WARNING] Rate limit hit. Trying different API key/model in {wait_time}s...")
                     await asyncio.sleep(wait_time)
                 else:
-                    print(f"\n❌ Rate limit error after {max_retries} attempts.")
+                    print(f"\n[ERROR] Rate limit error after {max_retries} attempts.")
                     print("All API keys exhausted. Please wait or add more API keys in .env")
                     print("Format: GROQ_API_KEY=key1,key2,key3")
                     raise
@@ -250,7 +250,7 @@ You will conduct a 15-question exam by asking questions ONE AT A TIME:
 - Questions 11-15: HARD open-ended questions
 
 For each MCQ:
-- State the difficulty level (🟢 EASY / 🟡 MEDIUM / 🔴 HARD)
+- State the difficulty level ([EASY] / [MEDIUM] / [HARD])
 - Ask the question clearly
 - Provide 4 options labeled A, B, C, D
 - Wait for student's answer

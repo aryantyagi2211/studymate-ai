@@ -138,7 +138,7 @@ async def run_knowledge_assessment():
     questions = parse_mcq_json(raw)
     
     if not questions or len(questions) < 5:
-        print("⚠️  Couldn't generate proper assessment questions. Here's the raw response:\n")
+        print("[WARNING] Couldn't generate proper assessment questions. Here's the raw response:\n")
         print(raw)
         return {"total": 0, "correct": 0, "percentage": 0, "skill_scores": {}}
     
@@ -150,7 +150,7 @@ async def run_knowledge_assessment():
     
     for q in questions:
         print("-" * 60)
-        print(f"\n📝 Question {q.get('id', '?')} — {q.get('skill', 'General')}\n")
+        print(f"\n[Q{q.get('id', '?')}] {q.get('skill', 'General')}\n")
         print(q.get('question', ''))
         print()
         
@@ -163,18 +163,18 @@ async def run_knowledge_assessment():
             answer = input("\n👉 Your answer (A/B/C/D): ").strip().upper()
             if answer in ['A', 'B', 'C', 'D']:
                 break
-            print("❌ Please enter A, B, C, or D")
+            print("[ERROR] Please enter A, B, C, or D")
         
         correct_answer = q.get('correct_answer', '').strip().upper()
         is_correct = (answer == correct_answer)
         
         if is_correct:
             correct_count += 1
-            print("✅ Correct!")
+            print("[✓] Correct!")
         else:
-            print(f"❌ Incorrect. The correct answer is: {correct_answer}")
+            print(f"[✗] Incorrect. The correct answer is: {correct_answer}")
         
-        print(f"💡 {q.get('explanation', '')}")
+        print(f"[INFO] {q.get('explanation', '')}")
         
         results.append({
             "id": q.get('id'),
@@ -200,23 +200,23 @@ async def run_knowledge_assessment():
     
     # Generate summary
     print("\n" + "=" * 60)
-    print("📊 ASSESSMENT RESULTS")
+    print("[ASSESSMENT RESULTS]")
     print("=" * 60)
-    print(f"\n🎯 Overall Score: {correct_count}/{total} ({percentage}%)\n")
+    print(f"\n[SCORE] Overall: {correct_count}/{total} ({percentage}%)\n")
     
-    print("📈 Skill Breakdown:")
+    print("[ANALYSIS] Skill Breakdown:")
     assessment_summary = []
     for skill, scores in skill_scores.items():
         skill_pct = int((scores['correct'] / scores['total']) * 100)
         
         if skill_pct >= 80:
-            level = "STRONG ✅"
+            level = "STRONG [✓]"
             recommendation = "You're doing great! Just a quick refresher needed."
         elif skill_pct >= 60:
-            level = "MEDIUM ⚠️"
+            level = "MEDIUM [!]"
             recommendation = "You understand the basics but need more practice."
         else:
-            level = "WEAK ❌"
+            level = "WEAK [✗]"
             recommendation = "This needs focused teaching from the ground up."
         
         print(f"\n  • {skill}: {scores['correct']}/{scores['total']} ({skill_pct}%) — {level}")
@@ -266,7 +266,7 @@ def parse_exam_json(raw_text):
         
         return valid_questions
     except (json.JSONDecodeError, AttributeError) as e:
-        print(f"⚠️  JSON Parse Error: {e}")
+        print(f"[WARNING] JSON Parse Error: {e}")
         return []
 
 
@@ -282,8 +282,8 @@ async def run_exam_interactive():
     """Run interactive exam with 15 questions asked one by one (like knowledge checker)."""
     
     print_header("[Examiner Agent] Final Exam - 15 Questions")
-    print("📝 Mix of multiple-choice and open-ended questions.")
-    print("Difficulty levels: 🟢 Easy (1-5), 🟡 Medium (6-10), 🔴 Hard (11-15)\n")
+    print("[INFO] Mix of multiple-choice and open-ended questions.")
+    print("Difficulty levels: [EASY] (1-5), [MEDIUM] (6-10), [HARD] (11-15)\n")
     
     examiner_session = examiner_agent.create_session()
     
@@ -318,17 +318,17 @@ Begin by asking Question 1 (EASY MCQ). Remember to:
                 answer = input("\n👉 Your answer (A/B/C/D): ").strip().upper()
                 if answer in ['A', 'B', 'C', 'D']:
                     break
-                print("❌ Please enter A, B, C, or D")
+                print("[ERROR] Please enter A, B, C, or D")
         else:
             # Open-ended questions
-            answer = input("\n✍️  Your detailed answer:\n> ").strip()
+            answer = input("\n[ANSWER] Your detailed answer:\n> ").strip()
         
         # Send answer to examiner
         reply = await run_step(examiner_agent, answer, session=examiner_session)
         print("\n" + reply)
         
-        # Track if correct (look for ✅ or "correct" in response)
-        if question_num <= 10 and ("✅" in reply or "correct" in reply.lower()):
+        # Track if correct (look for [✓] or "correct" in response)
+        if question_num <= 10 and ("[✓]" in reply or "correct" in reply.lower()):
             results['mcq_correct'] += 1
             results['correct'] += 1
         
@@ -354,7 +354,7 @@ Begin by asking Question 1 (EASY MCQ). Remember to:
     final_summary = await run_step(examiner_agent, summary_prompt, session=examiner_session)
     
     print("\n" + "=" * 70)
-    print("📊 FINAL EXAM RESULTS")
+    print("[FINAL EXAM RESULTS]")
     print("=" * 70)
     print(final_summary)
     print("=" * 70)
@@ -370,11 +370,11 @@ async def run_exam_old(context):
     questions = parse_exam_json(raw)
 
     if not questions or len(questions) < 10:
-        print("⚠️  Couldn't build a proper exam this time — here's the raw result:\n")
+        print("[WARNING] Couldn't build a proper exam this time — here's the raw result:\n")
         print(raw)
         return raw
 
-    print(f"📝 Exam ready! {len(questions)} questions to test your knowledge.")
+    print(f"[EXAM] Ready! {len(questions)} questions to test your knowledge.")
     print("Mix of multiple-choice and open-ended questions.\n")
 
     results = []
@@ -382,7 +382,7 @@ async def run_exam_old(context):
     mcq_total = 0
     
     for i, q in enumerate(questions, start=1):
-        difficulty_emoji = {"easy": "🟢", "medium": "🟡", "hard": "🔴"}.get(q.get('difficulty', 'medium').lower(), "⚪")
+        difficulty_emoji = {"easy": "[EASY]", "medium": "[MEDIUM]", "hard": "[HARD]"}.get(q.get('difficulty', 'medium').lower(), "[?]")
         
         print("\n" + "=" * 70)
         print(f"\nQuestion {i}/{len(questions)} {difficulty_emoji} [{q.get('difficulty', 'medium').upper()}] — {q.get('skill', 'General')}")
@@ -399,7 +399,7 @@ async def run_exam_old(context):
                 answer = input("\n👉 Your answer (A/B/C/D): ").strip().upper()
                 if answer in ['A', 'B', 'C', 'D']:
                     break
-                print("❌ Please enter A, B, C, or D")
+                print("[ERROR] Please enter A, B, C, or D")
             
             chosen = answer
             correct_answer = q.get("correct_answer", "").strip().upper()
@@ -408,12 +408,12 @@ async def run_exam_old(context):
             mcq_total += 1
             if is_correct:
                 mcq_correct += 1
-                print("✅ Correct!")
+                print("[✓] Correct!")
             else:
-                print(f"❌ Incorrect — the correct answer was: {correct_answer}")
+                print(f"[✗] Incorrect — the correct answer was: {correct_answer}")
             
             if q.get("explanation"):
-                print(f"💡 {q['explanation']}")
+                print(f"[INFO] {q['explanation']}")
 
             results.append({
                 "skill": q.get("skill", "General"),
@@ -423,8 +423,8 @@ async def run_exam_old(context):
             })
             
         else:  # Q&A type
-            print("\n💭 This is an open-ended question. Provide a detailed answer.\n")
-            answer = input("✍️  Your answer:\n> ").strip()
+            print("\n[OPEN-ENDED] This is an open-ended question. Provide a detailed answer.\n")
+            answer = input("[ANSWER] Your answer:\n> ").strip()
             
             results.append({
                 "skill": q.get("skill", "General"),
@@ -489,17 +489,17 @@ Student Answer: {r['student_answer']}
 
     # Calculate overall scores
     print("\n" + "=" * 70)
-    print("📊 EXAM RESULTS")
+    print("[EXAM RESULTS]")
     print("=" * 70)
     
     # MCQ scores
     mcq_percentage = int((mcq_correct / mcq_total) * 100) if mcq_total > 0 else 0
-    print(f"\n📝 Multiple Choice: {mcq_correct}/{mcq_total} ({mcq_percentage}%)")
+    print(f"\n[MCQ] Multiple Choice: {mcq_correct}/{mcq_total} ({mcq_percentage}%)")
     
     # Q&A scores
     if qa_scores:
         avg_qa_score = sum(qa_scores) / len(qa_scores)
-        print(f"💭 Open-Ended Q&A: {avg_qa_score:.0f}% average accuracy")
+        print(f"[Q&A] Open-Ended: {avg_qa_score:.0f}% average accuracy")
     else:
         avg_qa_score = 0
     
@@ -511,18 +511,18 @@ Student Answer: {r['student_answer']}
     else:
         overall_score = avg_qa_score
     
-    print(f"\n🎯 Overall Score: {overall_score:.0f}%")
+    print(f"\n[SCORE] Overall: {overall_score:.0f}%")
     
     # Difficulty breakdown
-    print("\n📈 Performance by Difficulty:")
+    print("\n[ANALYSIS] Performance by Difficulty:")
     for difficulty in ["easy", "medium", "hard"]:
         diff_results = [r for r in results if r.get("difficulty") == difficulty and r["type"] == "mcq"]
         if diff_results:
             diff_correct = sum(1 for r in diff_results if r["correct"])
             diff_total = len(diff_results)
             diff_pct = int((diff_correct / diff_total) * 100)
-            emoji = {"easy": "🟢", "medium": "🟡", "hard": "🔴"}[difficulty]
-            print(f"  {emoji} {difficulty.upper()}: {diff_correct}/{diff_total} ({diff_pct}%)")
+            marker = {"easy": "[EASY]", "medium": "[MEDIUM]", "hard": "[HARD]"}[difficulty]
+            print(f"  {marker} {difficulty.upper()}: {diff_correct}/{diff_total} ({diff_pct}%)")
     
     # Skill-wise scores
     skill_scores = {}
@@ -530,11 +530,11 @@ Student Answer: {r['student_answer']}
         if r["type"] == "mcq":
             skill_scores.setdefault(r["skill"], []).append(r["correct"])
 
-    print("\n📚 Performance by Skill:")
+    print("\n[ANALYSIS] Performance by Skill:")
     summary_lines = []
     for skill, outcomes in skill_scores.items():
         pct = (sum(outcomes) / len(outcomes)) * 100
-        flag = " — ⚠️  flagged for more teaching" if pct < 60 else ""
+        flag = " — [!] flagged for more teaching" if pct < 60 else ""
         print(f"  • {skill}: {pct:.0f}%{flag}")
         summary_lines.append(f"{skill}: {pct:.0f}%{flag}")
 
@@ -598,9 +598,9 @@ async def run_studymate():
     
     # Ask user to continue
     print("\n" + "=" * 60)
-    continue_input = input("\n➡️  Continue to Adaptive Planner? (yes/no): ").strip().lower()
+    continue_input = input("\n[NEXT] Continue to Adaptive Planner? (yes/no): ").strip().lower()
     if continue_input not in ['yes', 'y']:
-        print("\n⏸️  Session paused. Run again to continue from here.")
+        print("\n[PAUSED] Session paused. Run again to continue from here.")
         return
 
     # ---------- Adaptive Planner ----------
@@ -618,7 +618,7 @@ async def run_studymate():
     for _ in range(max_questions):
         student_reply = input("\n> ").strip()
         if not student_reply:
-            print("⚠️  Please provide an answer.")
+            print("[WARNING] Please provide an answer.")
             continue
             
         reply = await run_step(adaptive_planner, student_reply, session=planner_session)
@@ -651,7 +651,7 @@ async def run_studymate():
         iteration += 1
         
         print("\n" + "=" * 60)
-        print(f"📚 LEARNING CYCLE {iteration}")
+        print(f"[LEARNING CYCLE {iteration}]")
         print("=" * 60)
         
         # ---------- Teaching Agent: comprehension-check loop ----------
@@ -734,15 +734,15 @@ Keep response SHORT (2-3 sentences)."""
         # Check if student passed
         if current_score >= passing_score and not weak_skills:
             print("\n" + "=" * 60)
-            print("✅ STUDENT PASSED! Moving to final decision...")
+            print("[✓] STUDENT PASSED! Moving to final decision...")
             print("=" * 60)
             break
         else:
             print("\n" + "=" * 60)
-            print(f"📖 Score: {current_score}% - Below passing score ({passing_score}%)")
+            print(f"[PROGRESS] Score: {current_score}% - Below passing score ({passing_score}%)")
             if weak_skills:
-                print(f"🎯 Will focus on: {', '.join(weak_skills)}")
-            print(f"🔄 Starting Learning Cycle {iteration + 1}...")
+                print(f"[FOCUS] Will focus on: {', '.join(weak_skills)}")
+            print(f"[CYCLE] Starting Learning Cycle {iteration + 1}...")
             print("=" * 60)
             await asyncio.sleep(2)  # Brief pause before next cycle
     
