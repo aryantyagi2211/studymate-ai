@@ -16,7 +16,7 @@ from tasks import (
 )
 from data.data import LEARNER_DATA, WORK_SIGNALS, CERT_GUIDE, TEAM
 
-app = Flask(__name__, static_folder='.')
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 CORS(app)
 
 def run(agent, prompt, session=None):
