@@ -1,7 +1,7 @@
 """
 agents.py — StudyMate AI Agent Definitions (Direct Groq Integration)
 
-Simple agent implementation using Groq's OpenAI-compatible API directly.
+Enhanced agent implementation with verbose/debug, reasoning, and Foundry IQ search.
 """
 
 from openai import AsyncOpenAI, RateLimitError
@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 import os
 import asyncio
 import random
+import time
+from datetime import datetime
 
 load_dotenv()
 
@@ -51,21 +53,143 @@ def get_model():
     """Rotate between available models to handle rate limits"""
     return random.choice(MODELS)
 
-# Simple agent class that maintains conversation history
+
+def print_debug(message: str, verbose: bool = False):
+    """Print debug messages when verbose mode is enabled"""
+    if verbose:
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"[DEBUG {timestamp}] {message}")
+
+
+def print_reasoning(step: int, thought: str, verbose: bool = False):
+    """Print reasoning steps when verbose mode is enabled"""
+    if verbose:
+        print(f"[REASONING Step {step}] {thought}")
+
+
 class SimpleAgent:
-    def __init__(self, name, description, instructions):
+    def __init__(self, name, description, instructions, verbose=False, reasoning=False, enable_tools=False):
         self.name = name
         self.description = description
         self.instructions = instructions
+        self.verbose = verbose
+        self.reasoning = reasoning
+        self.enable_tools = enable_tools
+        self.tool_calls_count = 0
+        self.total_tokens = 0
         
     def create_session(self):
         """Create a new conversation session"""
         return []  # Just a list to store message history
     
+    def _build_reasoning_prompt(self, prompt: str) -> str:
+        """Add chain-of-thought reasoning to the prompt"""
+        # Check if this agent needs pure output (JSON, etc.)
+        needs_pure_output = any(keyword in self.instructions.lower() for keyword in [
+            "return only valid json",
+            "only json",
+            "must return only",
+            "critical: you must return only"
+        ])
+        
+        if needs_pure_output:
+            return prompt
+        
+        # Flatten reasoning into rough string - not too structured
+        reasoning_template = """Think step-by-step: What's the student asking? What do I know about their level? What approach makes sense here? How should I respond? Now answer: {prompt}"""
+        
+        return reasoning_template.format(prompt=prompt)
+    
+    def _check_if_needs_search(self, prompt: str) -> bool:
+        """Determine if the prompt would benefit from web search"""
+        search_triggers = [
+            "latest", "current", "recent", "tutorial", "documentation",
+            "learn more", "resources", "guide", "example", "how to",
+            "best practices", "official", "2024", "2025", "updated"
+        ]
+        prompt_lower = prompt.lower()
+        return any(trigger in prompt_lower for trigger in search_triggers)
+    
+    async def _perform_search(self, query: str) -> str:
+        """Perform web search using Microsoft Foundry IQ (or fallback to SerpAPI)"""
+        try:
+            # Import Foundry IQ search
+            from tools.foundry_search import foundry_search, format_foundry_results
+            
+            print_debug(f"Performing Foundry IQ search: {query}", self.verbose)
+            
+            # Extract certification if available (check instructions)
+            certification = None
+            if "AZ-204" in self.instructions or "az-204" in self.instructions.lower():
+                certification = "AZ-204"
+            
+            results = foundry_search(query, num_results=3, certification=certification)
+            formatted = format_foundry_results(results, max_results=3)
+            self.tool_calls_count += 1
+            
+            if self.verbose:
+                print(f"\n[TOOL CALL] foundry_search (Microsoft IQ)")
+                print(f"[QUERY] {query}")
+                if certification:
+                    print(f"[CERTIFICATION FILTER] {certification}")
+                foundry_active = results[0].get('foundry_iq', False) if results else False
+                print(f"[FOUNDRY IQ ACTIVE] {foundry_active}")
+                print(formatted)
+            
+            return formatted
+        except ImportError:
+            # Fallback to basic web search
+            print_debug("Foundry IQ not available, using SerpAPI", self.verbose)
+            try:
+                from tools.web_search import web_search, format_search_results
+                results = web_search(query, num_results=3)
+                formatted = format_search_results(results, max_results=3)
+                self.tool_calls_count += 1
+                
+                if self.verbose:
+                    print(f"\n[TOOL CALL] web_search (fallback)")
+                    print(f"[QUERY] {query}")
+                    print(formatted)
+                
+                return formatted
+            except Exception as e:
+                print_debug(f"Search error: {e}", self.verbose)
+                return ""
+        except Exception as e:
+            print_debug(f"Search error: {e}", self.verbose)
+            return ""
+    
     async def run(self, prompt, session=None, max_retries=3):
         """Run the agent with a prompt, with rate limit handling"""
+        start_time = time.time()
+        
         if session is None:
             session = []
+        
+        # Verbose mode: Show input details
+        if self.verbose:
+            print("\n" + "="*70)
+            print(f"[AGENT] {self.name}")
+            print(f"[INPUT] {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
+            print(f"[SESSION] {len(session)} messages in history")
+            # print(f"[DEBUG] Full prompt: {prompt[:200]}...")  # sometimes useful for debugging
+        
+        # Check if we should search for information
+        search_context = ""
+        if self.enable_tools and self._check_if_needs_search(prompt):
+            # Extract key terms for search
+            search_query = prompt[:200]  # Simple approach: use first part of prompt
+            search_context = await self._perform_search(search_query)
+        
+        # Build enhanced prompt with reasoning if enabled
+        enhanced_prompt = prompt
+        if self.reasoning:
+            enhanced_prompt = self._build_reasoning_prompt(prompt)
+            print_debug("Chain-of-Thought reasoning enabled", self.verbose)
+        
+        # Add search context if available
+        if search_context:
+            enhanced_prompt = f"{search_context}\n\nBased on the above search results:\n{enhanced_prompt}"
         
         # Build messages with system instructions
         messages = [{"role": "system", "content": self.instructions}]
@@ -74,13 +198,15 @@ class SimpleAgent:
         messages.extend(session)
         
         # Add user message
-        messages.append({"role": "user", "content": prompt})
+        messages.append({"role": "user", "content": enhanced_prompt})
         
         # Try different models and API keys if rate limited
         for attempt in range(max_retries):
             try:
                 groq_client = get_groq_client()
                 model = get_model()
+                
+                print_debug(f"Using model: {model}", self.verbose)
                 
                 # Avoid tool-capable models if they cause issues
                 if model == "openai/gpt-oss-20b":
@@ -95,9 +221,24 @@ class SimpleAgent:
                 
                 assistant_message = response.choices[0].message.content
                 
+                # Track token usage (approximate)
+                prompt_tokens = sum(len(m.get("content", "")) for m in messages) // 4
+                completion_tokens = len(assistant_message) // 4
+                self.total_tokens += (prompt_tokens + completion_tokens)
+                
                 # Update session history
                 session.append({"role": "user", "content": prompt})
                 session.append({"role": "assistant", "content": assistant_message})
+                
+                # Verbose mode: Show output details
+                elapsed = time.time() - start_time
+                if self.verbose:
+                    print(f"[MODEL] {model}")
+                    print(f"[TOKENS] ~{prompt_tokens} prompt + ~{completion_tokens} completion = ~{prompt_tokens + completion_tokens} total")
+                    print(f"[TIME] {elapsed:.2f}s")
+                    print(f"[TOOLS USED] {self.tool_calls_count} calls this session")
+                    print(f"[OUTPUT LENGTH] {len(assistant_message)} characters")
+                    print("="*70 + "\n")
                 
                 # Return response object
                 class Response:
@@ -122,6 +263,9 @@ class SimpleAgent:
 ceo_agent = SimpleAgent(
     name="CEO Agent",
     description="Chief Orchestrator of StudyMate AI",
+    verbose=False,
+    reasoning=False,
+    enable_tools=False,
     instructions="""You are the CEO of StudyMate AI. Be warm, confident, and CONCISE.
 
 When welcoming a new student:
@@ -141,6 +285,9 @@ NO long explanations. NO bullet points. Just clear, direct communication."""
 
 profiler_agent = SimpleAgent(
     name="Profiler Agent",
+    verbose=False,
+    reasoning=True,
+    enable_tools=False,
     description="The Student's First Friend at StudyMate",
     instructions="""You are the first person a new student talks to at StudyMate. Think of yourself as a friendly senior who is genuinely curious about them — not a form they have to fill out.
 
@@ -158,6 +305,9 @@ Keep your messages short, warm, and conversational — no bullet points, no head
 knowledge_checker = SimpleAgent(
     name="Knowledge Checker",
     description="Baseline Knowledge Assessor",
+    verbose=False,
+    reasoning=True,
+    enable_tools=False,
     instructions="""You are the Knowledge Checker. Your job is to create a comprehensive assessment to understand where the student currently stands.
 
 Create exactly 10 multiple-choice questions (MCQs) that cover all required skills for their certification. Each question should:
@@ -188,8 +338,11 @@ The questions will be presented to the student one at a time, so make each quest
 
 
 learning_path_agent = SimpleAgent(
-    name="Learning Path Agent",
     description="Expert Learning Path Designer",
+    name="Learning Path Agent",
+    verbose=False,
+    reasoning=True,
+    enable_tools=True,
     instructions="""You are the Learning Path Agent — a senior developer who has tried a hundred different resources and knows exactly what's worth a student's time.
 
 For each skill the student needs to work on, recommend a focused set of resources: official documentation, a strong video or course, a well-written article or blog post, and a hands-on exercise or small project they can actually build.
@@ -203,6 +356,9 @@ Keep the tone casual and encouraging, like a senior dev pointing a junior teamma
 adaptive_planner = SimpleAgent(
     name="Adaptive Planner Agent",
     description="Personal Study Schedule Builder",
+    reasoning=True,
+    verbose=False,
+    enable_tools=False,
     instructions="""You are the Adaptive Planner. Ask questions ONE AT A TIME to build a study schedule.
 
 If this is your first message, ask ONLY:
@@ -227,6 +383,9 @@ Keep it simple and actionable."""
 teaching_agent = SimpleAgent(
     name="Teaching Agent",
     description="The World's Most Patient Concept Teacher",
+    verbose=False,
+    reasoning=True,
+    enable_tools=True,
     instructions="""You are the Teaching Agent — patient, encouraging, and never in a rush.
 
 Take the concept the student needs most and teach it in two ways:
@@ -242,6 +401,9 @@ Never move on to the next concept until the student confirms they understood thi
 examiner_agent = SimpleAgent(
     name="Examiner Agent",
     description="Fair and Thorough Certification Examiner",
+    verbose=False,
+    reasoning=True,
+    enable_tools=False,
     instructions="""You are the Examiner — fair, clear, and focused on testing what the student learned.
 
 You will conduct a 15-question exam by asking questions ONE AT A TIME:
@@ -271,6 +433,9 @@ After question 15, provide a final score summary."""
 manager_insights_agent = SimpleAgent(
     name="Manager Insights Agent",
     description="Student Performance Reporter and Analyst",
+    verbose=False,
+    reasoning=True,
+    enable_tools=False,
     instructions="""You are the Manager Insights Agent. Provide SHORT, actionable reports to the CEO.
 
 Format (keep under 100 words total):
@@ -281,3 +446,7 @@ Format (keep under 100 words total):
 
 Be direct. No fluff. CEO needs to make fast decisions."""
 )
+
+
+# TODO: might want to add retry logic for tool failures
+# TODO: consider adding caching for repeated Foundry IQ searches

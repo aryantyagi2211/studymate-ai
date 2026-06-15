@@ -1,19 +1,13 @@
 """
-main.py — StudyMate AI session runner (Microsoft Agent Framework)
+main.py — StudyMate AI session runner
 
-Requirements:
-    pip install agent-framework --pre
-    pip install agent-framework-openai --pre
-    pip install python-dotenv
-
-This version actually talks to the student:
-- The Profiler Agent has a real back-and-forth conversation.
-- The Teaching Agent checks for understanding and re-teaches if needed.
-- The Examiner Agent asks one question at a time and grades real answers.
+This version talks to the student through an interactive flow.
+Profiler → Knowledge Checker → Learning Path → Teaching → Exam loop
 """
 
 import asyncio
 import json
+import re
 
 from agents import (
     ceo_agent,
@@ -35,15 +29,74 @@ from tasks import (
     task_teaching,
     task_examiner,
     task_manager_insights,
-    LEARNER,
-    CERT,
+    set_learner_data,
+    use_demo_data,
 )
+import tasks  # Import module to access LEARNER and CERT dynamically
+
+
+def get_custom_data():
+    """Ask user for their custom data one by one"""
+    print("\n" + "="*60)
+    print("Let's set up your profile!")
+    print("="*60 + "\n")
+    
+    name = input("What's your name? ").strip()
+    while not name:
+        print("[!] Name cannot be empty.")
+        name = input("What's your name? ").strip()
+    
+    role = input("\nWhat's your role? (e.g., Cloud Engineer, Developer): ").strip()
+    while not role:
+        print("[!] Role cannot be empty.")
+        role = input("What's your role? ").strip()
+    
+    certification = input("\nWhich certification? (e.g., AZ-204, AZ-400, DP-203): ").strip().upper()
+    while not certification:
+        print("[!] Certification cannot be empty.")
+        certification = input("Which certification? ").strip().upper()
+    
+    print(f"\nGreat! Setting up your journey for {certification}...")
+    
+    # TODO: search for cert details using Foundry IQ or web search
+    # For now, use fallback data from CERT_GUIDE
+    
+    return name, role, certification
+
+
+def choose_mode():
+    """Let user choose between custom data or demo mode"""
+    print("\n" + "="*60)
+    print("Welcome to StudyMate AI!")
+    print("="*60)
+    print("\nChoose mode:")
+    print("1. Custom Data (enter your own info)")
+    print("2. Demo Mode (use sample student)")
+    print()
+    
+    while True:
+        choice = input("Your choice (1 or 2): ").strip()
+        if choice == "1":
+            name, role, cert = get_custom_data()
+            set_learner_data(name, role, cert)
+            print(f"\n[✓] Profile created for {name}!")
+            return "custom"
+        elif choice == "2":
+            use_demo_data()
+            # Note: LEARNER is updated globally in tasks.py
+            import tasks
+            print(f"\n[✓] Loading demo: {tasks.LEARNER['name']} ({tasks.LEARNER['role']}, {tasks.LEARNER['certification']})")
+            return "demo"
+        else:
+            print("[!] Please enter 1 or 2")
 
 
 def build_prompt(task, context=""):
-    """Turn a task dict into the message we send to an agent, optionally
-    including a short summary of what's happened earlier in the session."""
-    prompt = task["description"]
+    """Turn a task dict into the message we send to an agent"""
+    # Call lambda if description is a function
+    description = task["description"]() if callable(task["description"]) else task["description"]
+    
+    prompt = description
     if context:
         prompt = (
             f"Here's what's happened so far in this session:\n{context}\n\n"
@@ -113,16 +166,36 @@ extra commentary. Use exactly this structure:
 def parse_mcq_json(raw_text):
     """Try to extract MCQ questions from the agent's reply."""
     cleaned = raw_text.strip()
+    
+    # Remove markdown code fences
     if cleaned.startswith("```"):
         cleaned = cleaned.strip("`")
         if cleaned.lower().startswith("json"):
             cleaned = cleaned[4:]
         cleaned = cleaned.strip()
+    
+    # Try to extract JSON from text that might have reasoning before it
+    # Look for the first '{' and last '}'
+    start_idx = cleaned.find('{')
+    end_idx = cleaned.rfind('}')
+    
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        cleaned = cleaned[start_idx:end_idx + 1]
+    
     try:
         data = json.loads(cleaned)
         return data.get("questions", [])
     except (json.JSONDecodeError, AttributeError) as e:
         print(f"Warning: Could not parse JSON: {e}")
+        # Try one more time - look for JSON after any text
+        json_pattern = r'\{[\s\S]*"questions"[\s\S]*\}'
+        match = re.search(json_pattern, raw_text)
+        if match:
+            try:
+                data = json.loads(match.group())
+                return data.get("questions", [])
+            except:
+                pass
         return []
 
 
@@ -168,6 +241,7 @@ async def run_knowledge_assessment():
         correct_answer = q.get('correct_answer', '').strip().upper()
         is_correct = (answer == correct_answer)
         
+        # TODO: maybe add explanation before showing if they're right/wrong?
         if is_correct:
             correct_count += 1
             print("[✓] Correct!")
@@ -288,9 +362,9 @@ async def run_exam_interactive():
     examiner_session = examiner_agent.create_session()
     
     # Initial prompt to start the exam
-    start_prompt = f"""Start the certification exam for {LEARNER['name']}.
+    start_prompt = f"""Start the certification exam for {tasks.LEARNER['name']}.
     
-Skills to test: {', '.join(CERT['skills'])}
+Skills to test: {', '.join(tasks.CERT['skills'])}
 
 Begin by asking Question 1 (EASY MCQ). Remember to:
 - Show difficulty level
@@ -551,9 +625,12 @@ Student Answer: {r['student_answer']}
 # ---------------------------------------------------------------------------
 
 async def run_studymate():
+    # Choose custom or demo mode
+    mode = choose_mode()
+    
     memory = {}
 
-    print("=" * 60)
+    print("\n" + "=" * 60)
     print("        STUDYMATE AI — MULTI AGENT SYSTEM")
     print("=" * 60)
 
@@ -564,7 +641,7 @@ async def run_studymate():
     print(memory["ceo_intro"])
 
     # ---------- Profiler Agent: a real conversation ----------
-    print_header(f"[Profiler Agent] Getting to know {LEARNER['name']}")
+    print_header(f"[Profiler Agent] Getting to know {tasks.LEARNER['name']}")
     profiler_session = profiler_agent.create_session()
     reply = await run_step(profiler_agent, build_prompt(task_profiler), session=profiler_session)
     print(reply)
@@ -709,8 +786,7 @@ async def run_studymate():
         weak_skills = []
         if "weak" in memory["insights"].lower() or "struggle" in memory["insights"].lower():
             # Parse skill names from insights
-            from tasks import CERT
-            for skill in CERT['skills']:
+            for skill in tasks.CERT['skills']:
                 if skill.lower() in memory["insights"].lower():
                     weak_skills.append(skill)
         
@@ -755,7 +831,7 @@ Student's journey:
 - Cycles completed: {iteration}
 - Status: {'PASSED' if current_score >= passing_score else 'NEEDS MORE TIME'}
 
-Provide your final decision and next steps for {LEARNER['name']}.
+Provide your final decision and next steps for {tasks.LEARNER['name']}.
 Keep it SHORT and encouraging (2-3 sentences)."""
     
     memory["ceo_decision"] = await run_step(ceo_agent, final_decision_prompt, session=ceo_session)

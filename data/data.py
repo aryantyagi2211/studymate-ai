@@ -1,66 +1,13 @@
-LEARNER_DATA = {
-    "L-1001": {
-        "name": "Arjun Sharma",
-        "role": "Cloud Engineer",
-        "certification": "AZ-204",
-        "hours_studied": 18,
-        "practice_score": 67,
-        "daily_hours_available": 1.5,
-        "preferred_slot": "Morning",
-        "skip_days": ["Sunday"],
-        "emergency": "Project deadline next week"
-    },
-    "L-1002": {
-        "name": "Priya Mehta",
-        "role": "DevOps Engineer",
-        "certification": "AZ-400",
-        "hours_studied": 24,
-        "practice_score": 82,
-        "daily_hours_available": 2,
-        "preferred_slot": "Evening",
-        "skip_days": ["Saturday", "Sunday"],
-        "emergency": "None"
-    },
-    "L-1003": {
-        "name": "Rohan Verma",
-        "role": "Data Engineer",
-        "certification": "DP-203",
-        "hours_studied": 20,
-        "practice_score": 74,
-        "daily_hours_available": 1,
-        "preferred_slot": "Afternoon",
-        "skip_days": ["Friday"],
-        "emergency": "Family event next weekend"
-    },
+# Demo student data - only essential fields
+# Agents will ask for other details during the session
+DEMO_STUDENT = {
+    "name": "Arjun Sharma",
+    "role": "Cloud Engineer",
+    "certification": "AZ-204"
 }
 
-WORK_SIGNALS = {
-    "EMP-001": {
-        "name": "Arjun Sharma",
-        "meeting_hours": 22,
-        "focus_hours": 10,
-        "preferred_slot": "Morning",
-        "energy_level": "Low by evening",
-        "best_focus_day": "Tuesday"
-    },
-    "EMP-002": {
-        "name": "Priya Mehta",
-        "meeting_hours": 15,
-        "focus_hours": 18,
-        "preferred_slot": "Evening",
-        "energy_level": "High in evening",
-        "best_focus_day": "Wednesday"
-    },
-    "EMP-003": {
-        "name": "Rohan Verma",
-        "meeting_hours": 18,
-        "focus_hours": 12,
-        "preferred_slot": "Afternoon",
-        "energy_level": "Peak after lunch",
-        "best_focus_day": "Thursday"
-    },
-}
-
+# Certification guide - fallback data if web search fails
+# Will be enhanced with real-time web search when possible
 CERT_GUIDE = {
     "AZ-204": {
         "full_name": "Developing Solutions for Microsoft Azure",
@@ -87,36 +34,3 @@ CERT_GUIDE = {
         "difficulty": "Intermediate"
     },
 }
-
-TEAM = [
-    {
-        "id": "L-1001",
-        "name": "Arjun Sharma",
-        "role": "Cloud Engineer",
-        "certification": "AZ-204",
-        "hours_studied": 18,
-        "practice_score": 67,
-        "status": "At Risk",
-        "emergency": "Project deadline next week"
-    },
-    {
-        "id": "L-1002",
-        "name": "Priya Mehta",
-        "role": "DevOps Engineer",
-        "certification": "AZ-400",
-        "hours_studied": 24,
-        "practice_score": 82,
-        "status": "On Track",
-        "emergency": "None"
-    },
-    {
-        "id": "L-1003",
-        "name": "Rohan Verma",
-        "role": "Data Engineer",
-        "certification": "DP-203",
-        "hours_studied": 20,
-        "practice_score": 74,
-        "status": "Needs Attention",
-        "emergency": "Family event next weekend"
-    },
-]
