@@ -416,6 +416,21 @@ All student data used in this project is synthetic and created specifically for 
 
 ---
 
+## Security & Compliance
+
+This project follows Microsoft Agents League security and compliance guidelines:
+
+✅ **No Confidential Information** - All code and data are public-safe  
+✅ **No Credentials in Code** - API keys stored in `.env` (gitignored)  
+✅ **Synthetic Data Only** - No real PII or customer data  
+✅ **Secret Scanning** - GitHub secret protection enabled  
+✅ **Open Source License** - MIT License applied  
+✅ **Security Best Practices** - Error handling, input validation, fallback mechanisms
+
+**Security Reporting:** If you find a security issue, please report via GitHub Security Advisories rather than public issues.
+
+---
+
 ## What's Next
 
 The foundation is built. Here's what comes next:
