@@ -12,8 +12,9 @@ azure-search-documents>=11.4.0
 crewai>=0.1.0
 litellm>=1.0.0
 
-# Optional: Web UI
-gradio>=4.0.0
+# Web UI - Streamlit for professional interface
+streamlit>=1.31.0
+plotly>=5.18.0
 
 # Phase 1 Enhancements: Web Search Tools
 google-search-results>=2.4.2  # SerpAPI for web search
